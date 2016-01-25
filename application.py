@@ -8,6 +8,23 @@ app = Flask(__name__)
 app.config['QUE'] = Queue.Queue()
 app.config['IS_QUIT'] = False
 
+
+@app.route('/')
+def index():
+    result = {
+        'hbc_url': '%shbc' % (request.url_root)
+    }
+    return jsonify(result), 200
+
+
+@app.route('/que', methods=['GET'])
+def que_get():
+    result = {
+        'qsize': app.config['QUE'].qsize()
+    }
+    return jsonify(result), 200
+
+
 @app.route('/hbc', methods=['POST'])
 def hbc_post():
     if not request.json.get('carinfo', None):
