@@ -37,4 +37,4 @@ def hbc_post():
     app.config['QUE'].put(request.json['carinfo'])
     if app.config['QUE'].qsize() >= 6:
         abort(429)
-    return jsonify(), 201
+    return jsonify({'message': 'Accepted'}), 202
