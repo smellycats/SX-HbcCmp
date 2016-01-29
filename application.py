@@ -8,7 +8,6 @@ app = Flask(__name__)
 app.config['QUE'] = Queue.Queue()
 app.config['IS_QUIT'] = False
 
-
 @app.route('/')
 def index():
     result = {
@@ -34,7 +33,8 @@ def hbc_post():
             'code': 'missing_field'
         }
         return jsonify({'message': 'Validation Failed', 'errors': error}), 422
-    app.config['QUE'].put(request.json['carinfo'])
     if app.config['QUE'].qsize() >= 6:
         abort(429)
+    else:
+        app.config['QUE'].put(request.json['carinfo'])
     return jsonify({'message': 'Accepted'}), 202
