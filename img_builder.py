@@ -13,7 +13,9 @@ def add_wm(url, imgpath, name, text, wz_img):
     im = Image.open(cStringIO.StringIO(buf.getvalue()))
     #print imgpath
     width, heigh = im.size
-    if width > 1200:
+    if width > 1600:
+        font_size = 35
+    elif width > 1200:
         font_size = 30
     else:
         font_size = 25
