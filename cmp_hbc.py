@@ -71,6 +71,8 @@ class HbcCompare(threading.Thread):
         self.wz_img_path = self.hbc_conf['wz_img_path']
         #self.hbc_img_dict = {}
         self.hbc_img_dict = helper.hbc_img()
+        #: 白名单 set
+        self.hbc_white_list = set()
 
     def __del__(self):
         print 'quit cmp_hbc'
@@ -93,7 +95,6 @@ class HbcCompare(threading.Thread):
                 raise Exception('url: {url}, status: {code}, {text}'.format(
                     url=url, code=r.status_code, text=r.text))
         except Exception as e:
-            #print e
             self.cgs_status = False
             raise
 
@@ -109,6 +110,26 @@ class HbcCompare(threading.Thread):
                 print 'hbc_num:%s' % len(items)
                 for i in items:
                     self.gdhbc_dict[(i['hphm'], i['hpzl'])] = i['ccdjrq']
+            else:
+                self.cgs_status = False
+                raise Exception('url: {url}, status: {code}, {text}'.format(
+                    url=url, code=r.status_code, text=r.text))
+        except Exception as e:
+            self.cgs_status = False
+            raise
+
+    def get_gdhbc_all_by_hphm(self, hphm, hpzl):
+        headers = {
+            'content-type': 'application/json'
+        }
+        url = u'http://{0[host]}:{0[port]}/hbc_all/{hphm}/{hpzl}'.format(
+            self.cgs_ini, hphm=hphm, hpzl=hpzl)
+        try:
+            r = requests.get(url, headers)
+            if r.status_code == 200:
+                return json.loads(r.text)
+            elif r.status_code == 404:
+                return None
             else:
                 self.cgs_status = False
                 raise Exception('url: {url}, status: {code}, {text}'.format(
@@ -222,6 +243,9 @@ class HbcCompare(threading.Thread):
         # 是否在黄标车集合里面
         if not self.check_hbc(f_hphm['hphm'], f_hphm['hpzl']):
             return
+        # 白名单过滤
+        if f_hphm['hphm'] in self.hbc_white_list:
+            return
         jgsj = arrow.get(i['jgsj'])
         #print u'黄表车: %s, 号牌颜色: %s' % (i['hphm'], i['hpys'])
         # 判断黄标车图片是否存在
@@ -270,7 +294,6 @@ class HbcCompare(threading.Thread):
 
     def fetch_data(self):
         """获取卡口车辆信息"""
-        #print 'fetch_data'
         try:
             carinfo = app.config['QUE'].get(timeout=1)
             for i in carinfo:
@@ -286,7 +309,6 @@ class HbcCompare(threading.Thread):
         # 加载初始化数据
         init_flag = False
         while 1:
-            #print 'test'
             if app.config['QUE'].qsize() == 0 and app.config['IS_QUIT']:
                 break
             if not init_flag:
@@ -303,7 +325,6 @@ class HbcCompare(threading.Thread):
                     init_flag = True
                     #print 'Init Finish'
                 except Exception as e:
-                    #print e
                     logger.error(e)
                     time.sleep(1)
             elif self.cgs_status and self.hbc_status:
@@ -320,7 +341,7 @@ class HbcCompare(threading.Thread):
             else:
                 try:
                     if not self.cgs_status:
-                        self.get_gdhbc_by_hphm(u'L12345', '02')
+                        self.get_gdhbc_all_by_hphm(u'L12345', '02')
                         self.cgs_status = True
                     if not self.hbc_status:
                         self.check_hbc_img_exist('2015-09-26', u'粤L12345', '441302')
