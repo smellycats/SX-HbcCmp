@@ -14,7 +14,22 @@ class MyIni:
         conf['wz_img_path'] = self.cf.get(section, 'wz_img_path').decode('gbk')
         return conf
 
+    def get_hbc_store(self):
+        conf = {}
+        section = 'HBCSTORE'
+        conf['host'] = self.cf.get(section, 'host')
+        conf['port'] = self.cf.get(section, 'port')
+        return conf
+
+    def get_hbc_cgs(self):
+        conf = {}
+        section = 'HBCCGS'
+        conf['host'] = self.cf.get(section, 'host')
+        conf['port'] = self.cf.get(section, 'port')
+        return conf
+
+
 if __name__ == '__main__':
     ini = MyIni()
-    hbc = ini.get_hbc()
+    hbc = ini.get_hbc_cgs()
     print hbc
